@@ -1,0 +1,39 @@
+version: '3.5'
+
+services:
+  redis:
+    image: redis
+    container_name: redis
+    volumes:
+      - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    ports:
+      - 6380:6380
+      - 6381:6381
+      - 6479:6379
+
+  redis-node-1:
+    network_mode: "service:redis"
+    image: redis
+    container_name: redis-node-1
+    volumes:
+      - ./conf/redis1.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+
+  redis-node-2:
+    network_mode: "service:redis"
+    image: redis
+    container_name: redis-node-2
+    volumes:
+      - ./conf/redis2.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+
+  redis-cluster-entry:
+    network_mode: "service:redis"
+    image: redis
+    container_name: redis-cluster-entry
+    command: redis-cli --cluster create 127.0.0.1:6479 127.0.0.1:6380 127.0.0.1:6381 --cluster-yes
+    depends_on:
+      - redis
+      - redis-node-1
+      - redis-node-2
